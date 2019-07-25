@@ -12,6 +12,13 @@
         android:layout_height="match_parent"
         mapbox:mapbox_cameraTargetLat="10.015162"
         mapbox:mapbox_cameraTargetLng="76.347298"
-        mapbox:mapbox_cameraZoom="16" />
+        mapbox:mapbox_cameraZoom="16" >
+
+        <Button
+            android:id="@+id/startButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Start" />
+    </com.mapbox.mapboxsdk.maps.MapView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

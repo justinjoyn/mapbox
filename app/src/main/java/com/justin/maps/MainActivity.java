@@ -5,8 +5,10 @@ import android.app.Activity;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -18,6 +20,9 @@ import com.mapbox.android.core.location.LocationEngineRequest;
 import com.mapbox.android.core.location.LocationEngineResult;
 import com.mapbox.android.core.permissions.PermissionsListener;
 import com.mapbox.android.core.permissions.PermissionsManager;
+import com.mapbox.api.directions.v5.models.DirectionsResponse;
+import com.mapbox.api.directions.v5.models.DirectionsRoute;
+import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.Mapbox;
 import com.mapbox.mapboxsdk.location.LocationComponent;
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions;
@@ -27,9 +32,17 @@ import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.maps.OnMapReadyCallback;
 import com.mapbox.mapboxsdk.maps.Style;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncher;
+import com.mapbox.services.android.navigation.ui.v5.NavigationLauncherOptions;
+import com.mapbox.services.android.navigation.v5.navigation.MapboxNavigation;
+import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 
 import java.lang.ref.WeakReference;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 
 public class MainActivity extends Activity implements OnMapReadyCallback, PermissionsListener {
@@ -44,6 +57,13 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
     private long DEFAULT_MAX_WAIT_TIME = DEFAULT_INTERVAL_IN_MILLISECONDS * 5;
     // Variables needed to listen to location updates
     private MainActivityLocationCallback callback = new MainActivityLocationCallback(this);
+    static Location location;
+    //Navigation
+    MapboxNavigation navigation;
+    Point origin = Point.fromLngLat(10.015164, 76.347315);
+    Point destination = Point.fromLngLat(10.004930, 76.363096);
+    DirectionsRoute route;
+    Button startButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +81,16 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         mapView = findViewById(R.id.mapView);
         mapView.onCreate(savedInstanceState);
         mapView.getMapAsync(this);
+
+        //Navigation
+        startButton = findViewById(R.id.startButton);
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initNavigation();
+            }
+        });
+        navigation = new MapboxNavigation(this, getString(R.string.mapbox_access_token));
     }
 
     @Override
@@ -127,6 +157,37 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         locationEngine.getLastLocation(callback);
     }
 
+    private void initNavigation() {
+        double bearing = Float.valueOf(location.getBearing()).doubleValue();
+        double tolerance = 90d;
+
+        NavigationRoute.builder(this)
+                .accessToken(getString(R.string.mapbox_access_token))
+                .origin(origin, bearing, tolerance)
+                .destination(destination)
+                .build()
+                .getRoute(new Callback<DirectionsResponse>() {
+                    @Override
+                    public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<DirectionsResponse> call, Throwable t) {
+
+                    }
+                });
+
+        // Create a NavigationLauncherOptions object to package everything together
+//        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+//                .directionsRoute(route)
+//                .shouldSimulateRoute(false)
+//                .build();
+
+        // Call this method with Context from within an Activity
+//        NavigationLauncher.startNavigation(this, options);
+    }
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         permissionsManager.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -149,8 +210,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         }
     }
 
-    private static class MainActivityLocationCallback
-            implements LocationEngineCallback<LocationEngineResult> {
+    private static class MainActivityLocationCallback implements LocationEngineCallback<LocationEngineResult> {
 
         private final WeakReference<MainActivity> activityWeakReference;
 
@@ -168,8 +228,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
             MainActivity activity = activityWeakReference.get();
 
             if (activity != null) {
-                Location location = result.getLastLocation();
-
+                location = result.getLastLocation();
                 if (location == null) {
                     return;
                 }
@@ -234,6 +293,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         if (locationEngine != null) {
             locationEngine.removeLocationUpdates(callback);
         }
+        navigation.onDestroy();
         mapView.onDestroy();
     }
 
@@ -242,4 +302,6 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         super.onLowMemory();
         mapView.onLowMemory();
     }
+
+
 }
