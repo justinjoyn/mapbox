@@ -60,8 +60,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
     static Location location;
     //Navigation
     MapboxNavigation navigation;
-    Point origin = Point.fromLngLat(10.015164, 76.347315);
-    Point destination = Point.fromLngLat(10.004930, 76.363096);
+    Point origin = Point.fromLngLat(76.34731543257728, 10.015164534200206);
+    Point destination = Point.fromLngLat(76.36309551999042, 10.00492976581474);
     DirectionsRoute route;
     Button startButton;
 
@@ -70,7 +70,7 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         super.onCreate(savedInstanceState);
         // Mapbox access token is configured here. This needs to be called either in your application
         // object or in the same activity which contains the mapview.
-        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
+//        Mapbox.getInstance(this, getString(R.string.mapbox_access_token));
         //Remove title bar
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
         //Remove notification bar
@@ -78,9 +78,9 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         // This contains the MapView in XML and needs to be called after the access token is configured.
         setContentView(R.layout.activity_main);
 
-        mapView = findViewById(R.id.mapView);
-        mapView.onCreate(savedInstanceState);
-        mapView.getMapAsync(this);
+//        mapView = findViewById(R.id.mapView);
+//        mapView.onCreate(savedInstanceState);
+//        mapView.getMapAsync(this);
 
         //Navigation
         startButton = findViewById(R.id.startButton);
@@ -95,15 +95,15 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
 
     @Override
     public void onMapReady(@NonNull final MapboxMap mapboxMap) {
-        this.mapboxMap = mapboxMap;
-
-        mapboxMap.setStyle(Style.MAPBOX_STREETS,
-                new Style.OnStyleLoaded() {
-                    @Override
-                    public void onStyleLoaded(@NonNull Style style) {
-                        enableLocationComponent(style);
-                    }
-                });
+//        this.mapboxMap = mapboxMap;
+//
+//        mapboxMap.setStyle(Style.MAPBOX_STREETS,
+//                new Style.OnStyleLoaded() {
+//                    @Override
+//                    public void onStyleLoaded(@NonNull Style style) {
+//                        enableLocationComponent(style);
+//                    }
+//                });
     }
 
     /**
@@ -115,27 +115,27 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
         if (PermissionsManager.areLocationPermissionsGranted(this)) {
 
             // Get an instance of the component
-            LocationComponent locationComponent = mapboxMap.getLocationComponent();
+//            LocationComponent locationComponent = mapboxMap.getLocationComponent();
 
             // Set the LocationComponent activation options
-            LocationComponentActivationOptions locationComponentActivationOptions =
-                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
-                            .useDefaultLocationEngine(false)
-                            .build();
+//            LocationComponentActivationOptions locationComponentActivationOptions =
+//                    LocationComponentActivationOptions.builder(this, loadedMapStyle)
+//                            .useDefaultLocationEngine(false)
+//                            .build();
 
             // Activate with the LocationComponentActivationOptions object
-            locationComponent.activateLocationComponent(locationComponentActivationOptions);
+//            locationComponent.activateLocationComponent(locationComponentActivationOptions);
 
             // Enable to make component visible
-            locationComponent.setLocationComponentEnabled(true);
+//            locationComponent.setLocationComponentEnabled(true);
 
             // Set the component's camera mode
-            locationComponent.setCameraMode(CameraMode.TRACKING);
+//            locationComponent.setCameraMode(CameraMode.TRACKING);
 
             // Set the component's render mode
-            locationComponent.setRenderMode(RenderMode.COMPASS);
+//            locationComponent.setRenderMode(RenderMode.COMPASS);
 
-            initLocationEngine();
+//            initLocationEngine();
         } else {
             permissionsManager = new PermissionsManager(this);
             permissionsManager.requestLocationPermissions(this);
@@ -169,7 +169,8 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
                 .getRoute(new Callback<DirectionsResponse>() {
                     @Override
                     public void onResponse(Call<DirectionsResponse> call, Response<DirectionsResponse> response) {
-
+                        route = response.body().routes().get(0);
+                        startNavigation(route);
                     }
 
                     @Override
@@ -177,15 +178,17 @@ public class MainActivity extends Activity implements OnMapReadyCallback, Permis
 
                     }
                 });
+    }
 
+    public void startNavigation(DirectionsRoute r) {
         // Create a NavigationLauncherOptions object to package everything together
-//        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
-//                .directionsRoute(route)
-//                .shouldSimulateRoute(false)
-//                .build();
+        NavigationLauncherOptions options = NavigationLauncherOptions.builder()
+                .directionsRoute(r)
+                .shouldSimulateRoute(false)
+                .build();
 
         // Call this method with Context from within an Activity
-//        NavigationLauncher.startNavigation(this, options);
+        NavigationLauncher.startNavigation(this, options);
     }
 
     @Override
